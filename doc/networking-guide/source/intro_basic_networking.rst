@@ -198,8 +198,46 @@ you can view the contents of the ARP cache by using the *arp* command::
 DHCP
 ~~~~
 
+Hosts connected to a network use the Dynamic Host Configuration Protocol (DHCP)
+to dynamically obtain IP addresses. A DHCP server hands out the IP addresses to
+network hosts, which are the DHCP clients.
+
+DHCP clients locate the DHCP server by sending a UDP_ packet from port 68 to
+address ``255.255.255.255`` on port 67. Address ``255.255.255.255`` is the local
+network broadcast address: UDP packets sent to this address will be seen by all
+hosts on the local network. However, such packets will not be forwarded to other
+networks. Consequently, the DHCP server must be on the same local network as the
+client, or the server will not receive the broadcast. The DHCP server will respond
+by sending a UDP packet from port 67 to port 68 on the client.  The exchange
+looks like this:
+
+1. The client sends a discover ("I’m a client at MAC address ``30:f7:0d:08:cf:e6``, I need an IP address")
+2. The server sends an offer ("OK ``30:f7:0d:08:cf:e6``, I’m offering IP address ``10.10.0.112``")
+3. The client sends a request ("Server ``10.10.0.131``, I would like to have IP ``10.10.0.112``")
+4. The server sends an acknowledgement ("OK ``30:f7:0d:08:cf:e6``, IP ``10.10.0.112`` is yours")
+
+
+OpenStack uses a third-party program called dnsmasq_ to implement the DHCP server.
+Dnsmasq writes to the syslog (/var/log/syslog), where you can observe the DHCP
+request and replies::
+
+    Apr 23 15:53:46 c100-1 dhcpd: DHCPDISCOVER from 30:f7:0d:08:cf:e6 via eth2
+    Apr 23 15:53:46 c100-1 dhcpd: DHCPOFFER on 10.10.0.112 to 30:f7:0d:08:cf:e6 via eth2
+    Apr 23 15:53:48 c100-1 dhcpd: DHCPREQUEST for 10.10.0.112 (10.10.0.131) from 30:f7:0d:08:cf:e6 via eth2
+    Apr 23 15:53:48 c100-1 dhcpd: DHCPACK on 10.10.0.112 to 30:f7:0d:08:cf:e6 via eth2
+
+When troubleshooting an instance that is not reachable over the network, it can
+be helpful to examine this log to verify that all four steps of the DHCP
+protocol were carried out for the instance in question.
+
+
+.. _dnsmasq: http://www.thekelleys.org.uk/dnsmasq/doc.html
+
+
 IP
 ~~
+
+.. _UDP:
 
 ICMP/TCP/UDP
 ~~~~~~~~~~~~

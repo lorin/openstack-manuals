@@ -42,3 +42,4 @@ components:
    intro_tunnel_technologies.rst
    intro_network_namespaces.rst
    intro_network_address_translation.rst
+   intro_iptables.rst
